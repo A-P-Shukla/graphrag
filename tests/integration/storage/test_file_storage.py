@@ -29,6 +29,18 @@ async def test_find():
     assert output is None
 
 
+async def test_find_ignores_matching_directories(tmp_path):
+    archive_dir = tmp_path / "archive.txt"
+    archive_dir.mkdir()
+    (archive_dir / "document.txt").write_text("real document", encoding="utf-8")
+
+    storage = FileStorage(base_dir=str(tmp_path))
+    items = list(storage.find(re.compile(r".*\.txt$")))
+
+    assert items == [str(Path("archive.txt") / "document.txt")]
+    assert await storage.get(str(Path("archive.txt") / "document.txt")) == "real document"
+
+
 async def test_get_creation_date():
     storage = FileStorage(
         base_dir="tests/fixtures/text/input",
